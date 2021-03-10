@@ -28,10 +28,7 @@ const Painto: React.FC<Props> = (props) => {
   const bb = React.useRef<DOMRect | null>(null);
 
   const [mouseDown, setMouseDown] = React.useState(false);
-  const [mouseLocation, setMouseLocation] = React.useState<[number, number]>([
-    0,
-    0,
-  ]);
+  const [, setMouseLocation] = React.useState<[number, number]>([0, 0]);
 
   useOnClickFinishOutside(canvas, () => {
     setMouseDown(false);
@@ -63,7 +60,7 @@ const Painto: React.FC<Props> = (props) => {
     if (canvas.current != null && onDraw != null) {
       onDraw(canvas.current);
     }
-  }, [mouseDown]);
+  }, [mouseDown, onDraw]);
 
   const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setMouseDown(true);
