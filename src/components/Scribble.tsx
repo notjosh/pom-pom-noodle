@@ -5,20 +5,24 @@ type Props = {
   width: number;
   height: number;
   onDraw: (image: HTMLCanvasElement) => void;
+  brushCol: string;
+  backgroundCol?: string;
 };
 
-const Scribble: React.FC<Props> = ({ width, height, onDraw }) => {
+const Scribble: React.FC<Props> = ({
+  width,
+  height,
+  onDraw,
+  brushCol,
+  backgroundCol,
+}) => {
   const props = {
-    brushCol: "#00ff00",
-    backgroundCol: "#ff0000",
+    brushCol,
+    backgroundCol,
     lineWidth: 10,
     height,
     width,
-    onDraw: (canvas: HTMLCanvasElement) => {
-      const data = canvas.toDataURL("image/png");
-      console.log("i have drawn!");
-      onDraw(canvas);
-    },
+    onDraw,
   };
 
   return <Painto {...props} />;

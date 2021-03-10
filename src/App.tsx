@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from "react";
 import "./App.css";
+import Ball from "./components/Ball";
 import Rainbow from "./components/Rainbow";
 import Scribble from "./components/Scribble";
-import P5 from "p5";
 
 const config = {
   width: 300,
@@ -24,12 +24,14 @@ const App: React.FC = () => {
 
   return (
     <>
-      <div style={{ float: "left" }}>
+      <div style={{ float: "left", margin: 10 }}>
         <h1>top:</h1>
         <Scribble
           width={config.width}
           height={config.height}
           onDraw={onDrawTop}
+          backgroundCol={"blue"}
+          brushCol={"#ff00ff"}
         />
         {top && (
           <Rainbow
@@ -41,20 +43,29 @@ const App: React.FC = () => {
         )}
       </div>
 
-      <div style={{ float: "left" }}>
+      <div style={{ float: "left", margin: 10 }}>
         <h1>bottom:</h1>
         <Scribble
           width={config.width}
           height={config.height}
           onDraw={onDrawBottom}
+          backgroundCol={"magenta"}
+          brushCol={"#00ff00"}
         />
         {bottom && (
           <Rainbow
             src={bottom}
-            highlightColour={[14, 222, 14]}
+            highlightColour={[254, 208, 1]}
             width={config.width}
             height={config.height}
           />
+        )}
+      </div>
+
+      <div style={{ clear: "both" }}>
+        <h1>combined:</h1>
+        {top && bottom && (
+          <Ball top={top} bottom={bottom} size={config.width} />
         )}
       </div>
     </>

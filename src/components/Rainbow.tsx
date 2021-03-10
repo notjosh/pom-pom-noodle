@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
-
 import P5 from "p5";
+import React from "react";
 import Sketch from "../ext/react-p5";
 
 const drawSegment = (
@@ -45,9 +44,7 @@ const Rainbow: React.FC<Props> = ({ src, highlightColour, width, height }) => {
   const p5ref = React.useRef<P5 | null>();
   const image = React.useRef<P5.Image | null>();
 
-  useEffect(() => {
-    console.log("boop");
-
+  React.useEffect(() => {
     const p5 = p5ref.current;
 
     if (p5 != null) {
@@ -58,19 +55,14 @@ const Rainbow: React.FC<Props> = ({ src, highlightColour, width, height }) => {
   }, [src]);
 
   const setup = (p5: P5, canvasParentRef: Element) => {
-    console.log("setup");
     p5.createCanvas(width, height, p5.WEBGL).parent(canvasParentRef);
     p5.noLoop();
     p5ref.current = p5;
   };
 
   const draw = (p5: P5) => {
-    console.log("draw");
-
     const rainbowRadius = width / 2;
     const rainbowWidth = rainbowRadius / 1.4;
-
-    console.log({ image, src });
 
     p5.push();
     p5.noFill();
