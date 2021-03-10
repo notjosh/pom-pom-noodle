@@ -10,40 +10,53 @@ const config = {
 };
 
 const App: React.FC = () => {
-  const p5 = React.useMemo(() => {
-    return new P5(() => {});
-  }, []);
-
-  const [top, setTop] = useState<P5.Image>(
-    p5.createImage(config.width, config.height)
-  );
+  const [top, setTop] = useState<string | null>(null);
   const onDrawTop = useCallback(
-    (image: string) => setTop(p5.loadImage(image)),
-    [p5]
+    (image: HTMLCanvasElement) => setTop(image.toDataURL()),
+    []
   );
 
-  console.log("render");
+  const [bottom, setBottom] = useState<string | null>(null);
+  const onDrawBottom = useCallback(
+    (image: HTMLCanvasElement) => setBottom(image.toDataURL()),
+    []
+  );
 
   return (
     <>
-      <h1>top:</h1>
-      {/* <Scribble
-        width={config.width}
-        height={config.height}
-        onDraw={onDrawTop}
-      /> */}
-      {top && (
-        <Rainbow
-          src={top}
-          highlightColour={p5.color(222, 14, 14)}
+      <div style={{ float: "left" }}>
+        <h1>top:</h1>
+        <Scribble
           width={config.width}
           height={config.height}
+          onDraw={onDrawTop}
         />
-      )}
+        {top && (
+          <Rainbow
+            src={top}
+            highlightColour={[222, 14, 14]}
+            width={config.width}
+            height={config.height}
+          />
+        )}
+      </div>
 
-      {/* <h1>bottom:</h1>
-      <Scribble width={300} height={150} />
-      <Rainbow src={bottom} /> */}
+      <div style={{ float: "left" }}>
+        <h1>bottom:</h1>
+        <Scribble
+          width={config.width}
+          height={config.height}
+          onDraw={onDrawBottom}
+        />
+        {bottom && (
+          <Rainbow
+            src={bottom}
+            highlightColour={[14, 222, 14]}
+            width={config.width}
+            height={config.height}
+          />
+        )}
+      </div>
     </>
   );
 };

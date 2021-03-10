@@ -1,130 +1,146 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-interface Props {
+type Props = {
   className?: string;
-  style: object;
+  style?: React.CSSProperties;
   height: number;
   width: number;
   brushCol: string;
+  backgroundCol?: string;
   lineWidth: number;
-  onDraw: (canvas: HTMLCanvasElement) => void;
-}
+  onDraw?: (canvas: HTMLCanvasElement) => void;
+};
 
-interface State {
-  mouseDown: boolean;
-  mouseLoc: [number, number];
-}
+const Painto: React.FC<Props> = (props) => {
+  const {
+    width,
+    height,
+    onDraw,
+    style,
+    className = "react-paint",
+    brushCol,
+    backgroundCol,
+    lineWidth,
+  } = props;
 
-class Painto extends React.Component<Props, State> {
-  static defaultProps = {
-    className: "react-paint",
-    style: {},
-    height: 500,
-    width: 500,
-    brushCol: "#ff6347",
-    lineWidth: 10,
-    onDraw: () => {},
-  };
+  const canvas = React.useRef<HTMLCanvasElement>(null);
+  const ctx = React.useRef<CanvasRenderingContext2D | null>(null);
+  const bb = React.useRef<DOMRect | null>(null);
 
-  private canvas: HTMLCanvasElement | null = null;
-  private bb: DOMRect | undefined;
-  private ctx?: CanvasRenderingContext2D | null = null;
+  const [mouseDown, setMouseDown] = React.useState(false);
+  const [mouseLocation, setMouseLocation] = React.useState<[number, number]>([
+    0,
+    0,
+  ]);
 
-  state: State = {
-    mouseDown: false,
-    mouseLoc: [0, 0],
-  };
+  useOnClickFinishOutside(canvas, () => {
+    setMouseDown(false);
+  });
 
-  componentDidMount() {
-    const { brushCol, lineWidth } = this.props;
-
-    const ctx = this.canvas?.getContext("2d");
-
-    if (ctx != null) {
-      ctx.lineWidth = lineWidth;
-      ctx.strokeStyle = brushCol;
-      ctx.lineJoin = ctx.lineCap = "round";
-
-      this.ctx = ctx;
-    }
-
-    this.bb = this.canvas?.getBoundingClientRect();
-  }
-
-  componentWillUpdate(nextProps: Props) {
-    const { brushCol, lineWidth } = this.props;
-
-    if (
-      this.ctx != null &&
-      (brushCol !== nextProps.brushCol || lineWidth !== nextProps.lineWidth)
-    ) {
-      this.ctx.lineWidth = nextProps.lineWidth;
-      this.ctx.strokeStyle = nextProps.brushCol;
-    }
-  }
-
-  mouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!this.state.mouseDown) {
-      this.setState({ mouseDown: true });
-    }
-
-    this.setState({
-      mouseLoc: [e.pageX, e.pageY],
-    });
-
-    if (this.bb != null) {
-      this.ctx?.moveTo(e.pageX - this.bb.left, e.pageY - this.bb.top);
-    }
-  };
-
-  mouseUp = () => this.setState({ mouseDown: false });
-
-  mouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (this.state.mouseDown) {
-      if (
-        e.pageX > 0 &&
-        e.pageY < this.props.height &&
-        this.ctx != null &&
-        this.bb != null
-      ) {
-        this.ctx.lineTo(e.pageX - this.bb.left, e.pageY - this.bb.top);
-
-        this.ctx.stroke();
+  useEffect(() => {
+    const context = canvas?.current?.getContext("2d");
+    if (context != null) {
+      if (backgroundCol != null) {
+        context.fillStyle = backgroundCol;
+        context.fillRect(0, 0, width, height);
       }
+
+      context.lineWidth = lineWidth;
+      context.strokeStyle = brushCol;
+      context.lineJoin = context.lineCap = "round";
+
+      ctx.current = context;
+    }
+
+    bb.current = canvas.current?.getBoundingClientRect() ?? null;
+  }, [brushCol, lineWidth, backgroundCol, width, height, canvas, bb]);
+
+  useEffect(() => {
+    if (mouseDown === true) {
+      return;
+    }
+
+    if (canvas.current != null && onDraw != null) {
+      onDraw(canvas.current);
+    }
+  }, [mouseDown]);
+
+  const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setMouseDown(true);
+    setMouseLocation([e.pageX, e.pageY]);
+
+    if (bb.current != null) {
+      const x = e.clientX - bb.current.left;
+      const y = e.clientY - bb.current.top;
+
+      ctx.current?.moveTo(x, y);
+
+      ctx.current?.lineTo(x, y);
+      ctx.current?.stroke();
     }
   };
 
-  render() {
-    const { width, height, onDraw, style, className } = this.props;
+  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setMouseDown(false);
+  };
 
-    return (
-      <div className={className}>
-        <canvas
-          ref={(c) => {
-            this.canvas = c;
-          }}
-          className={`${className}__canvas`}
-          width={width}
-          height={height}
-          onClick={(e) => {
-            if (this.canvas != null) {
-              onDraw(this.canvas);
-            }
-          }}
-          style={Object.assign({}, style, {
-            width: this.props.width,
-            height: this.props.height,
-          })}
-          onMouseDown={this.mouseDown}
-          // onTouchStart={this.mouseDown}
-          onMouseUp={this.mouseUp}
-          // onTouchEnd={this.mouseUp}
-          onMouseMove={this.mouseMove}
-          // onTouchMove={this.touchMove}
-        />
-      </div>
-    );
-  }
+  const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (mouseDown && bb.current != null) {
+      const x = e.clientX - bb.current.left;
+      const y = e.clientY - bb.current.top;
+
+      ctx.current?.lineTo(x, y);
+      ctx.current?.stroke();
+    }
+  };
+
+  return (
+    <div className={className}>
+      <canvas
+        ref={canvas}
+        className={`${className}__canvas`}
+        width={width}
+        height={height}
+        style={{ ...style, width, height }}
+        onMouseDown={onMouseDown}
+        // onTouchStart={this.mouseDown}
+        onMouseUp={onMouseUp}
+        // onTouchEnd={this.mouseUp}
+        onMouseMove={onMouseMove}
+        // onTouchMove={this.touchMove}
+      />
+    </div>
+  );
+};
+
+// Hook
+
+function useOnClickFinishOutside(
+  ref: React.RefObject<HTMLElement>,
+  handler: React.EffectCallback
+) {
+  useEffect(() => {
+    const listener = (event: MouseEvent | TouchEvent) => {
+      const target = event.target;
+
+      if (
+        target instanceof Element &&
+        (!ref.current || ref.current.contains(target))
+      ) {
+        return;
+      }
+
+      handler();
+    };
+
+    document.addEventListener("mouseup", listener);
+    document.addEventListener("touchend", listener);
+
+    return () => {
+      document.removeEventListener("mouseup", listener);
+      document.removeEventListener("touchend", listener);
+    };
+  }, [ref, handler]);
 }
 
 export default Painto;

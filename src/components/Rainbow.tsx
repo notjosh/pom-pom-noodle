@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import P5 from "p5";
-import Sketch from "react-p5";
+import Sketch from "../ext/react-p5";
 
 const drawSegment = (
   p5: P5,
@@ -35,33 +35,55 @@ const drawSegment = (
 };
 
 type Props = {
-  src: P5.Image;
-  highlightColour: P5.Color;
+  src: string;
+  highlightColour: [number, number, number];
+  width: number;
+  height: number;
 };
 
-const Rainbow: React.FC<Props> = ({ src, highlightColour }) => {
-  console.log({ src, highlightColour });
+const Rainbow: React.FC<Props> = ({ src, highlightColour, width, height }) => {
+  const p5ref = React.useRef<P5 | null>();
+  const image = React.useRef<P5.Image | null>();
+
+  useEffect(() => {
+    console.log("boop");
+
+    const p5 = p5ref.current;
+
+    if (p5 != null) {
+      image.current = p5.loadImage(src, () => {
+        p5ref.current?.redraw();
+      });
+    }
+  }, [src]);
+
   const setup = (p5: P5, canvasParentRef: Element) => {
     console.log("setup");
-    p5.createCanvas(src.width, src.height, p5.WEBGL).parent(canvasParentRef);
+    p5.createCanvas(width, height, p5.WEBGL).parent(canvasParentRef);
     p5.noLoop();
+    p5ref.current = p5;
   };
 
   const draw = (p5: P5) => {
     console.log("draw");
-    const rainbowRadius = src.width / 2;
+
+    const rainbowRadius = width / 2;
     const rainbowWidth = rainbowRadius / 1.4;
+
+    console.log({ image, src });
 
     p5.push();
     p5.noFill();
     p5.translate(0, -rainbowRadius / 2);
     p5.push();
-    // drawSegment(p5, src, rainbowRadius, rainbowWidth, Math.PI, 180);
-    p5.image(src, 0, 0);
+    if (image.current != null) {
+      drawSegment(p5, image.current, rainbowRadius, rainbowWidth, Math.PI, 180);
+      // p5.image(image.current, 0, 0);
+    }
     p5.pop();
 
     p5.push();
-    p5.stroke(highlightColour.toString());
+    p5.stroke(p5.color(highlightColour));
     p5.strokeWeight(4);
     p5.arc(
       0,
@@ -73,16 +95,8 @@ const Rainbow: React.FC<Props> = ({ src, highlightColour }) => {
     );
     p5.pop();
 
-    p5.push();
-    p5.stroke(0);
-    p5.strokeWeight(1);
-    p5.rect(-rainbowRadius, 0, rainbowRadius * 2, rainbowRadius);
-    p5.pop();
-
     p5.pop();
   };
-
-  console.log("rainbow");
 
   return <Sketch setup={setup} draw={draw} />;
 };

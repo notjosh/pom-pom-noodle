@@ -4,24 +4,20 @@ import Painto from "./Painto";
 type Props = {
   width: number;
   height: number;
-  onDraw: (image: string) => void;
+  onDraw: (image: HTMLCanvasElement) => void;
 };
 
 const Scribble: React.FC<Props> = ({ width, height, onDraw }) => {
   const props = {
-    style: {
-      background: "tomato",
-      /* Arbitrary css styles */
-    },
-    brushCol: "#ffffff",
+    brushCol: "#00ff00",
+    backgroundCol: "#ff0000",
     lineWidth: 10,
-    className: "react-paint",
     height,
     width,
     onDraw: (canvas: HTMLCanvasElement) => {
       const data = canvas.toDataURL("image/png");
-      console.log("i have drawn!", data);
-      onDraw(data);
+      console.log("i have drawn!");
+      onDraw(canvas);
     },
   };
 
